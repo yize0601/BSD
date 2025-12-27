@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>年龄计算器（实岁 & 虚岁）</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 20px; background: #f9f9f9; }
+        h1 { text-align: center; }
+        label { display: block; margin: 15px 0 5px; font-weight: bold; }
+        input[type="date"] { width: 100%; padding: 10px; font-size: 16px; }
+        button { padding: 10px 20px; font-size: 16px; background: #007bff; color: white; border: none; cursor: pointer; margin-top: 20px; }
+        button:hover { background: #0056b3; }
+        .result { margin-top: 30px; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .result p { font-size: 18px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>年龄计算器（实岁 & 虚岁）</h1>
+    <label for="birthdate">你的出生日期（公历）：</label>
+    <input type="date" id="birthdate">
+    <button onclick="saveAndCalculate()">保存并计算</button>
+
+    <div class="result" id="result" style="display:none;">
+        <p>当前实岁（周岁）： <strong id="realAge"></strong> 岁</p>
+        <p>当前虚岁： <strong id="virtualAge"></strong> 岁</p>
+        <p>距离下一个实岁生日（实岁 +1）： <strong id="nextReal"></strong> 天</p>
+        <p>距离下一个虚岁（下一个春节，虚岁 +1）： <strong id="nextVirtual"></strong> 天</p>
+    </div>
+
+    <script>
+        // 农历春节日期（公历），可扩展更多年份
+        const chineseNewYear = {
+            2025: "2025-01-29",
+            2026: "2026-02-17",
+            2027: "2027-02-06",
+            2028: "2028-01-26",
+            2029: "2029-02-13",
+            2030: "2030-02-03"
+            // 如需更多，可自行添加
+        };
+
+        function getNextChineseNewYear(today) {
+            const year = today.getFullYear();
+            for (let y = year; y <= year + 5; y++) {
+                if (chineseNewYear[y]) {
+                    const cny = new Date(chineseNewYear[y]);
+                    if (cny > today) return cny;
+                }
+            }
+            return null; // 如果超出范围，返回 null（实际不会）
+        }
+
+        function calculate() {
+            const birthStr = localStorage.getItem("birthdate");
+            if (!birthStr) {
+                alert("请先输入并保存出生日期！");
+                return;
+            }
+            const birth = new Date(birthStr);
+            const today = new Date();
+            today.setHours(0,0,0,0); // 忽略时间部分
+
+            // 实岁计算
+            let realAge = today.getFullYear() - birth.getFullYear();
+            if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) {
+                realAge--;
+            }
+
+            // 下一实岁生日
+            let nextBirthday = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+            if (nextBirthday <= today) {
+                nextBirthday.setFullYear(today.getFullYear() + 1);
+            }
+            const daysToNextReal = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
+
+            // 虚岁计算（需要下一个春节）
+            const nextCNY = getNextChineseNewYear(today);
+            if (!nextCNY) {
+                document.getElementById("virtualAge").textContent = "未知（年份超出范围）";
+                document.getElementById("nextVirtual").textContent = "未知";
+                return;
+            }
+            // 当前虚岁：从出生年到当前经历的春节数 +1
+            // 简单近似：当前年 - 出生年 +1 + (如果已过今年春节则 +0，否则 -1？) 实际用春节计算更准
+            // 更准确：出生时1岁，每过一个春节 +1
+            let virtualAge = today.getFullYear() - birth.getFullYear() + 1;
+            // 如果还没过今年春节，虚岁 -1
+            const thisYearCNY = new Date(chineseNewYear[today.getFullYear()] || chineseNewYear[today.getFullYear() + 1]);
+            if (today < thisYearCNY) {
+                virtualAge--;
+            }
+
+            const daysToNextVirtual = Math.ceil((nextCNY - today) / (1000 * 60 * 60 * 24));
+
+            // 显示
+            document.getElementById("realAge").textContent = realAge;
+            document.getElementById("virtualAge").textContent = virtualAge;
+            document.getElementById("nextReal").textContent = daysToNextReal;
+            document.getElementById("nextVirtual").textContent = daysToNextVirtual;
+            document.getElementById("result").style.display = "block";
+        }
+
+        function saveAndCalculate() {
+            const input = document.getElementById("birthdate").value;
+            if (!input) {
+                alert("请选择出生日期！");
+                return;
+            }
+            localStorage.setItem("birthdate", input);
+            calculate();
+        }
+
+        // 页面加载时自动读取并计算
+        window.onload = function() {
+            const saved = localStorage.getItem("birthdate");
+            if (saved) {
+                document.getElementById("birthdate").value = saved;
+                calculate();
+            }
+        };
+    </script>
+</body>
+</html>
