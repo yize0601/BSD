@@ -102,12 +102,12 @@ button:hover {
 <div class="result" id="result" style="display:none;">
     <p>当前实岁（周岁）： <strong id="realAge"></strong> 岁</p>
     <p>当前虚岁： <strong id="virtualAge"></strong> 岁</p>
-    <p>距离下一个实岁生日： <strong id="nextReal"></strong> 天</p>
-    <p>距离下一个虚岁（下一个春节）： <strong id="nextVirtual"></strong> 天</p>
+    <p>距离下一次实岁+1： <strong id="nextReal"></strong> 天</p>
+    <p>距离下一次虚岁+1（下一个春节）： <strong id="nextVirtual"></strong> 天</p>
 </div>
 
 <script>
-/* ===== 黑暗模式 ===== */
+/* 黑暗模式 */
 function toggleTheme() {
     document.body.classList.toggle("dark");
     const dark = document.body.classList.contains("dark");
@@ -122,7 +122,7 @@ function toggleTheme() {
     }
 })();
 
-/* ===== 原有年龄逻辑（未改） ===== */
+/* ===== 原有年龄逻辑===== */
 const chineseNewYear = {
     2025: "2025-01-29",
     2026: "2026-02-17",
